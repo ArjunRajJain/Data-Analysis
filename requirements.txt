@@ -1,0 +1,5 @@
+Flask==0.10.1
+requests==2.4.3
+psycopg2==2.6.1
+authomatic==0.1.0.post1
+CanIStreamIt==0.2
