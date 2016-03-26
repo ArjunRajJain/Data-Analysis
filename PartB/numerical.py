@@ -1,18 +1,20 @@
 #Data Stuff
-from pandas import Series,DataFrame,read_csv
+from pandas import Series,DataFrame,read_csv, read_table
 from numpy import amax
 import copy
 import re
+import * from get_data
 
 
 #ML Stuff
 from sklearn.feature_extraction import DictVectorizer as DV
+from sklearn import preprocessing
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC, LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
-from sklearn.cross_validation import cross_val_score
+from sklearn.cross_validation import train_test_split, cross_val_score
 
 #subset of fields based upon their attributes
 
@@ -33,43 +35,50 @@ features = ["emp_length","home_ownership","loan_status","purpose","addr_state","
 
 def clean_data(data):
 
+    #find out if the loan is good or not and add the appropriate column indicating so
+    pattern = re.compile("Current|Fully")
+    data["good"] = [1 if type(status) is str and pattern.match(status) else 0 for status in data["loan_status"]]
+
     #drop unnecessary data
     data = data.drop(categorical + drop,axis = 1)
 
-    #get max of all columns to do scaling
-    max_data = amax(data, 0)
-
+    #fill in nulls
     for feature in numerical :
-        #fill in nulls
         data[feature] = data[feature].fillna(0)
 
-        #scale to 0-1
-        if(not type(max_data[feature]) is str) :
-            data[feature] = data[feature]/max_data[feature]
+    #scale data based on min-max
+    data[numerical] = preprocessing.MinMaxScaler().fit_transform(data[numerical])
 
     return data;
 
-def create_submission(name,alg, train, test, fields, filename):
+def create_submission(name, alg, data, fields, filename):
     #lets fit and predict!
-    alg.fit(train[fields], train["good"])
+    x_train, x_test, y_train, y_test = train_test_split(
+        data[fields+["id"]],
+        data['good'],
+        test_size=0.3,
+        random_state=0
+    )
 
-    predictions = alg.predict(test[fields]);
+    alg.fit(x_train, y_train)
+
+    predictions = alg.predict(x_test);
 
     #lets see our average score with cross_validation
-    scores = cross_val_score(alg,test[fields],test["good"],cv=5);
-    print("Accuracy for %s: %0.2f (+/- %0.2f)" % (name,scores.mean(), scores.std() * 2))
+    scores = cross_val_score(alg,x_test,y_test,cv=5);
+    print("Accuracy for %s: %0.2f (+/- %0.2f)\n" % (name,scores.mean(), scores.std() * 2))
 
     #lets export our results to a csv
     submission = DataFrame({
-        "id": test["id"],
+        "id": x_test["id"],
         "good": predictions
     })
-    submission.to_csv(filename, index=False);
 
+    submission.to_csv("predictions/"+filename, index=False);
 
     #lets get our co-effecients for each feature from the algorithm
     #and export it to a csv
-    coeff_df = DataFrame(train[fields].columns)
+    coeff_df = DataFrame(x_test.columns)
     coeff_df.columns = ['Features']
 
     if type(alg) == LogisticRegression :
@@ -86,13 +95,14 @@ def create_submission(name,alg, train, test, fields, filename):
     elif type(alg) == RandomForestClassifier:
         coeff_df["Feature Importance"] = alg.feature_importances_
 
-    coeff_df.to_csv("coeff-"+ filename,index=False);
-
+    coeff_df.to_csv("weights/"+ filename,index=False);
 
 
 def main() :
-    train_data = clean_data(read_csv("input/test.csv"))
-    test_data  = clean_data(read_csv("input/train.csv"))
+    print "\nRunning\n\n"
+    # data = clean_data(read_csv("input/loan_data.csv"));
+    data = clean_data(read_table("loan_data",con=conn));
+    conn.close();
 
     predictors = [numerical]
 
@@ -107,10 +117,12 @@ def main() :
             min_samples_leaf=2
         ))
     ];
+
     for fields in predictors :
         for alg in algos :
-            create_submission(alg[0], alg[2], train_data, test_data,fields, alg[1]+".csv")
+            create_submission(alg[0], alg[2], data,fields, alg[1]+".csv")
 
+    print "\nEND\n"
 
 
 if __name__ == '__main__':

@@ -12,11 +12,13 @@ PWD = "'Wealthfront1'"
 
 #Connect to RedShift
 conn_string = "dbname="+DBNAME + "port=" + PORT + " user=" + USER + " password=" + PWD + " host= " + HOST;
-print "Connecting to database\n        ->%s" % (conn_string)
-conn = psycopg2.connect(conn_string);
 
-result = pandas.read_sql_table("loan_data", conn);
-print result;
+def get_connection() :
+    try:
+        conn = psycopg2.connect(conn_string);
+        return conn;
+    except Exception as err:
+        print(err)
 
 
 conn.commit();

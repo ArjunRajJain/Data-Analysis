@@ -28,6 +28,12 @@ I analyzed it with the following algorithms -
         I finally thought I'd try a Random Forest Classifier as I wanted to use
         a decision tree to find which features are truly the most important
         and by using a Random Forest Classifier I got the benefit of reducing my
-        likelihood of overfitting.
+        likelihood of overfitting. With an accuracy of 0.99 (+/- 0.02), I gotta
+        say I was pretty happy with the results.
 
-The CSV files
+
+You can install the appropriate pip packages by running the following -
+
+pip install -r requirements.txt
+
+and then you can run the code by executing python q3.py
