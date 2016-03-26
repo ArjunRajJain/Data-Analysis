@@ -27,6 +27,9 @@ GROUP BY addr_state
 
 # iterate through each country and get the appropriate percentile amount
 for result in cursor.fetchall():
+    #ntile is assigning percentiles to the appropriate row based on the order of loan_amnt
+    #after we assign it, we simply find the ones that have a 90th percentile (top 10%)
+    #and average them up to get the appropriate loan amount at the top 10%.
     str = """
     with percentiles as
 	(SELECT loan_amnt, ntile(100) over (order by loan_amnt) AS percentile
@@ -34,7 +37,7 @@ for result in cursor.fetchall():
 	WHERE addr_state = """;
     str+= "'"+result[0] + "')\n";
     str+= """
-        Select avg(loan_amnt) as amnt
+        Select avg(loan_amnt) as top_loan_amnt
         From percentiles
         Where percentile = 90;
     """;
@@ -43,6 +46,7 @@ for result in cursor.fetchall():
     results.append((result[0],temp[0][0],result[1]));
 
 # print top 10
+# we sort first on the loan_amnt and then the num_customers
 i = 0;
 for result in sorted(sorted(results, key=lambda x:x[2],reverse=True),key=lambda x:x[1],reverse=True):
     if(i < 10) :
