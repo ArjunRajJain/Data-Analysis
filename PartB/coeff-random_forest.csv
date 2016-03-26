@@ -1,0 +1,15 @@
+Features,Feature Importance
+loan_amnt,0.042707556207
+funded_amnt,0.0347860211214
+annual_inc,0.0765545896604
+installment,0.103569011268
+dti,0.045891709705
+delinq_2yrs,0.00323950463551
+mths_since_last_delinq,0.00879870062687
+open_acc,0.0448088965309
+revol_bal,0.0250068803007
+total_acc,0.0772208027701
+out_prncp,0.0582479166431
+total_pymnt,0.207621626103
+total_rec_prncp,0.187884420173
+total_rec_int,0.0836623642543

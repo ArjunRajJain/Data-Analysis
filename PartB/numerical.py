@@ -1,7 +1,9 @@
 #Data Stuff
 from pandas import Series,DataFrame,read_csv
+from numpy import amax
 import copy
 import re
+
 
 #ML Stuff
 from sklearn.feature_extraction import DictVectorizer as DV
@@ -10,8 +12,7 @@ from sklearn.svm import SVC, LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
-from sklearn import cross_validation
-from sklearn import metrics
+from sklearn.cross_validation import cross_val_score
 
 #subset of fields based upon their attributes
 
@@ -31,10 +32,20 @@ extract_num = ["term","int_rate","int_rate2"]
 features = ["emp_length","home_ownership","loan_status","purpose","addr_state","loan_amnt","funded_amnt","annual_inc","int_rate","installment","dti","delinq_2yrs","earliest_cr_line","mths_since_last_delinq","open_acc","revol_bal","total_acc","out_prncp","total_pymnt","total_rec_prncp","total_rec_int","int_rate2","term","int_rate"]
 
 def clean_data(data):
-    data.drop(categorical + drop,axis = 1)
 
-    for feature in features :
+    #drop unnecessary data
+    data = data.drop(categorical + drop,axis = 1)
+
+    #get max of all columns to do scaling
+    max_data = amax(data, 0)
+
+    for feature in numerical :
+        #fill in nulls
         data[feature] = data[feature].fillna(0)
+
+        #scale to 0-1
+        if(not type(max_data[feature]) is str) :
+            data[feature] = data[feature]/max_data[feature]
 
     return data;
 
@@ -42,16 +53,11 @@ def create_submission(name,alg, train, test, fields, filename):
     #lets fit and predict!
     alg.fit(train[fields], train["good"])
 
-    predictions = cross_validation.cross_val_predict(
-        alg,
-        test[fields],
-        test["good"],
-        cv=2
-    );
+    predictions = alg.predict(test[fields]);
 
     #lets see our average score with cross_validation
-    print "Mean Score for ", name , " - ", metrics.accuracy_score(test["good"], predictions);
-
+    scores = cross_val_score(alg,test[fields],test["good"],cv=5);
+    print("Accuracy for %s: %0.2f (+/- %0.2f)" % (name,scores.mean(), scores.std() * 2))
 
     #lets export our results to a csv
     submission = DataFrame({
@@ -63,17 +69,22 @@ def create_submission(name,alg, train, test, fields, filename):
 
     #lets get our co-effecients for each feature from the algorithm
     #and export it to a csv
-    coeff_df = DataFrame(train.columns.delete(0))
+    coeff_df = DataFrame(train[fields].columns)
     coeff_df.columns = ['Features']
 
     if type(alg) == LogisticRegression :
-        coeff_df["Coefficient Estimate"] = Series(alg.coef_[0])
+        coeff_df["Coefficient Estimate"] = alg.coef_[0];
+
     elif type(alg) == GaussianNB :
-        coeff_df["Coefficient Estimate"] = Series(alg.theta_[0])
-    elif type(alg) == KNeighborsClassifier :
-        coeff_df["Coefficient Estimate"] = Series(alg.getParams())
+        coeff_df["Mean for Good"] = alg.theta_[0];
+        coeff_df["Variance for Good"] = alg.sigma_[0];
+        coeff_df["Mean for Bad"] = alg.theta_[1];
+        coeff_df["Variance for Bad"] = alg.sigma_[1];
+        coeff_df["Prior Probability for Good"] = [alg.class_prior_[1] for i in range(len(alg.theta_[0])) ]
+        coeff_df["Prior Probability for Bad"] = [alg.class_prior_[0] for i in range(len(alg.theta_[0])) ]
+
     elif type(alg) == RandomForestClassifier:
-        coeff_df["Feature Importance"] = Series(alg.feature_importances_)
+        coeff_df["Feature Importance"] = alg.feature_importances_
 
     coeff_df.to_csv("coeff-"+ filename,index=False);
 
@@ -87,7 +98,7 @@ def main() :
 
     algos = [
         ("Gausian Naive Bayes","gausian_naive_bayes",GaussianNB()),
-        ("K Neighbors Classifier","k_neighbors",KNeighborsClassifier(n_neighbors = 3)),
+        ("K Neighbors Classifier","k_neighbors",KNeighborsClassifier(n_neighbors = 4)),
         ("Logistic Regression","logistic",LogisticRegression(random_state=1)),
         ("Random Forest Classifier","random_forest",RandomForestClassifier(
             random_state=1,

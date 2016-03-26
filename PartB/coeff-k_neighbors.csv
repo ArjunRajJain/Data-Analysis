@@ -1,0 +1,15 @@
+Features
+loan_amnt
+funded_amnt
+annual_inc
+installment
+dti
+delinq_2yrs
+mths_since_last_delinq
+open_acc
+revol_bal
+total_acc
+out_prncp
+total_pymnt
+total_rec_prncp
+total_rec_int

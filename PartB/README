@@ -1,0 +1,33 @@
+For this part I used python to analyze the data.
+I first normalized the data by removing unnecessary columns (such as empty ones)
+and by scaling any numbers (with respect to their column). I also added an
+extra column indicating good/bad (1/0) based upon their status being
+Current/FullyPaid or not. I then made sure to split up the test/train sets such
+that they roughly had an even amount of good/bad loans.
+
+I analyzed it with the following algorithms -
+
+    Gaussian Naive Bayes :
+        I used this next because I wanted to test if it was probable that there
+        is independence between each feature and after getting an average accuracy
+        of 0.89 (+/- 0.11) I wasn't fully convinced.
+
+    Logistic Regression :
+        I then used Logistic Regression for simplicity sake to see if there was
+        an easy weighting to each (scaled) feature, which there was as indicated
+        by an average accuracy of 0.96 (+/- 0.06).
+
+    K Nearest Neighbor :
+        I used this because I wanted to test if neighbors (in terms of euclidean
+        distance in the data) were a good indication of a loan's class.We got an
+        average accuracy of about 0.97 (+/- 0.11), indicating that euclidean
+        distance between numerical fields is definitely a defining factor in
+        classifying a loan.
+
+    Random Forest Classifier :
+        I finally thought I'd try a Random Forest Classifier as I wanted to use
+        a decision tree to find which features are truly the most important
+        and by using a Random Forest Classifier I got the benefit of reducing my
+        likelihood of overfitting.
+
+The CSV files

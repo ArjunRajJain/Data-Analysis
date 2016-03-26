@@ -25,6 +25,7 @@ FROM loan_data
 GROUP BY addr_state
 """);
 
+
 # iterate through each country and get the appropriate percentile amount
 for result in cursor.fetchall():
     #ntile is assigning percentiles to the appropriate row based on the order of loan_amnt

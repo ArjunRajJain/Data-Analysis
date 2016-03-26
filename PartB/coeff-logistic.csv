@@ -1,0 +1,15 @@
+Features,Coefficient Estimate
+loan_amnt,-4.47888707417
+funded_amnt,-4.4946239981
+annual_inc,2.70301722046
+installment,1.21203999237
+dti,0.494544911575
+delinq_2yrs,-1.00467039505
+mths_since_last_delinq,0.124903666056
+open_acc,2.83106519125
+revol_bal,0.814583345197
+total_acc,1.52391495744
+out_prncp,5.17020624845
+total_pymnt,8.1817249753
+total_rec_prncp,9.31355434138
+total_rec_int,3.05378959812
