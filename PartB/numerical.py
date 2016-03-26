@@ -1,9 +1,9 @@
 #Data Stuff
-from pandas import Series,DataFrame,read_csv, read_table
+from pandas import Series,DataFrame,read_csv, read_sql_table
 from numpy import amax
 import copy
 import re
-import * from get_data
+from sqlalchemy import create_engine
 
 
 #ML Stuff
@@ -36,8 +36,8 @@ features = ["emp_length","home_ownership","loan_status","purpose","addr_state","
 def clean_data(data):
 
     #find out if the loan is good or not and add the appropriate column indicating so
-    pattern = re.compile("Current|Fully")
-    data["good"] = [1 if type(status) is str and pattern.match(status) else 0 for status in data["loan_status"]]
+    pattern = re.compile("(Current|Fully)")
+    data["good"] = [1 if (type(status) is unicode or type(status) is str) and not pattern.search(status) == None else 0 for status in data["loan_status"]]
 
     #drop unnecessary data
     data = data.drop(categorical + drop,axis = 1)
@@ -65,7 +65,7 @@ def create_submission(name, alg, data, fields, filename):
     predictions = alg.predict(x_test);
 
     #lets see our average score with cross_validation
-    scores = cross_val_score(alg,x_test,y_test,cv=5);
+    scores = cross_val_score(alg,x_test,y_test,cv=10);
     print("Accuracy for %s: %0.2f (+/- %0.2f)\n" % (name,scores.mean(), scores.std() * 2))
 
     #lets export our results to a csv
@@ -99,12 +99,21 @@ def create_submission(name, alg, data, fields, filename):
 
 
 def main() :
-    print "\nRunning\n\n"
-    # data = clean_data(read_csv("input/loan_data.csv"));
-    data = clean_data(read_table("loan_data",con=conn));
-    conn.close();
+    print "\nPulling Data\n"
 
-    predictors = [numerical]
+    #set up db variables
+    HOST = "sql-exercise.cnfbdodh0lq8.us-west-2.redshift.amazonaws.com";
+    PORT,DBNAME,USER,PWD = "5439", "db", "wealthfront", "Wealthfront1";
+    conn_string = "postgresql://" + USER + ":" + PWD + "@"+HOST+":"+ PORT + "/"+DBNAME;
+
+    #get code from sql and clean it
+    # data = clean_data(read_csv("input/loan_data.csv"));
+    data = clean_data(read_sql_table("loan_data", create_engine(conn_string)));
+
+    print "\nData pulled and cleaned! Running Our Algorthims now\n"
+
+    #predictors is the list of fields that we will be running our algorithms on
+    predictors = numerical
 
     algos = [
         ("Gausian Naive Bayes","gausian_naive_bayes",GaussianNB()),
@@ -118,11 +127,13 @@ def main() :
         ))
     ];
 
-    for fields in predictors :
-        for alg in algos :
-            create_submission(alg[0], alg[2], data,fields, alg[1]+".csv")
+    #lets run our algos!
+    for alg in algos :
+        create_submission(alg[0], alg[2],data, predictors, alg[1]+".csv")
 
     print "\nEND\n"
+
+
 
 
 if __name__ == '__main__':
