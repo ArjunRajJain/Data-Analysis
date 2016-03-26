@@ -1,4 +1,4 @@
-"addr_state","count","avg_annual_inc"
+"addr_state","num_customers","avg_annual_inc"
 "CA",1685,73506.5576481597
 "NY",868,72822.9877858881
 "TX",783,74802.7760237781
