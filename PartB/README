@@ -2,6 +2,8 @@ For this part I used python to analyze the data.
 I first import the data from sql using sqlalchemy and pandas.
 I then normalized the data by removing unnecessary columns (such as empty ones)
 and by scaling any numbers (with respect to their column).
+I added 0's to any holes in the data, although i think this should be revised
+to probably something more like the mean/median.
 I also added an extra column indicating good/bad (1/0) based upon their
 status being Current/FullyPaid or not.
 I then tried to tackle the problem of overfitting by
@@ -17,12 +19,18 @@ I analyzed the data with the following algorithms -
     Gaussian Naive Bayes :
         I used this next because I wanted to test if it was probable that there
         is independence between each feature and after getting an average accuracy
-        of 0.90 (+/- 0.00) I wasn't fully convinced.
+        of 0.90 (+/- 0.00) I wasn't fully convinced. We find that there is actually
+        quite distinguishing factors between a good and bad loan for most features.
+        The prior probabilities are also biased towards good loans because
+        of the sheer number of good loans we have versus bad ones. Interestingly,
+        the higher the loan amount, the more likely to have a bad loan.
 
     Logistic Regression :
         I then used Logistic Regression for simplicity sake to see if there was
         an easy weighting to each (scaled) feature, which there was as indicated
-        by an average accuracy of 0.90 (+/- 0.00).
+        by an average accuracy of 0.90 (+/- 0.00). We find that the most weighted
+        features are out_prncp,total_pymnt,and total_rec_prncp. There is an interesting
+        inverse relationship with the loan_amount and funded_amount;
 
     K Nearest Neighbor :
         I used this because I wanted to test if neighbors (in terms of euclidean
@@ -36,14 +44,15 @@ I analyzed the data with the following algorithms -
         a decision tree to find which features are truly the most important
         and by using a Random Forest Classifier I got the benefit of reducing my
         likelihood of overfitting. With an accuracy of 0.97 (+/- 0.01), I gotta
-        say I was pretty happy with the results.
+        say I was pretty happy with the results. We find the most important features
+        to be annual_inc, installment, total_pymnt, and total_rec_prncp.
 
 
 You can install the appropriate pip packages by running the following -
 
 pip install -r requirements.txt
 
-and then you can run the code by executing python numerical.py
+and then you can run the code by executing python main.py
 
 the folders weights/predictions hold the appropriate data from the algorithms.
 

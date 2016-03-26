@@ -60,12 +60,11 @@ def create_submission(name, alg, data, fields, filename):
         random_state=0
     )
 
-    alg.fit(x_train, y_train)
-
-    predictions = alg.predict(x_test);
+    alg.fit(x_train[fields], y_train)
+    predictions = alg.predict(x_test[fields]);
 
     #lets see our average score with cross_validation
-    scores = cross_val_score(alg,x_test,y_test,cv=10);
+    scores = cross_val_score(alg,x_test[fields],y_test,cv=10);
     print("Accuracy for %s: %0.2f (+/- %0.2f)\n" % (name,scores.mean(), scores.std() * 2))
 
     #lets export our results to a csv
@@ -78,7 +77,7 @@ def create_submission(name, alg, data, fields, filename):
 
     #lets get our co-effecients for each feature from the algorithm
     #and export it to a csv
-    coeff_df = DataFrame(x_test.columns)
+    coeff_df = DataFrame(x_test[fields].columns)
     coeff_df.columns = ['Features']
 
     if type(alg) == LogisticRegression :

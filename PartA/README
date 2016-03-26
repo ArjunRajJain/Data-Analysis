@@ -4,10 +4,10 @@ The SQL files contain the queries used to obtain the answers.
 
 Regarding question 3, I was having a difficult time using the join in the
 appropriate manner. Hence I created a python file to interface with the DB,
-and calculate it with two sql statements (one nested in the other). 
+and calculate it with two sql statements (one nested in the other).
 
-You can install the appropriate pip packages by running the following - 
+You can install the appropriate pip packages by running the following -
 
-pip install -r requirements.txt 
+pip install -r requirements.txt
 
 and then you can run the code by executing python q3.py
